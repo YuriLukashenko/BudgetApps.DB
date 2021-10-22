@@ -200,3 +200,16 @@ create view dbo.case_payouts_total(initial, payed) as
 create view dbo.case_payouts_left(value) as
     select cpt.initial - cpt.payed
     from dbo.case_payouts_total as cpt;
+	
+create view dbo.sum_fud_by_sprint as
+select fus.name,
+       sum(fud.value) as sum,
+       min(fud.date) as min_date,
+       max(fud.date) as max_date,
+       (CAST(MAX(fud.date) AS date) - CAST(MIN(fud.date) AS date)) as days,
+       fus.comment
+from dbo.fund_donations as fud
+         inner join dbo.fund_sprints fus
+             on fus.fus_id = fud.fus_id
+group by fus.fus_id
+order by max_date
