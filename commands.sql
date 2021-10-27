@@ -200,8 +200,8 @@ create view dbo.case_payouts_total(initial, payed) as
 create view dbo.case_payouts_left(value) as
     select cpt.initial - cpt.payed
     from dbo.case_payouts_total as cpt;
-	
-create view dbo.sum_fud_by_sprint as
+
+create view dbo.fund_total_by_sprint as
 select fus.name,
        sum(fud.value) as sum,
        min(fud.date) as min_date,
@@ -212,4 +212,62 @@ from dbo.fund_donations as fud
          inner join dbo.fund_sprints fus
              on fus.fus_id = fud.fus_id
 group by fus.fus_id
-order by max_date
+order by max_date;
+
+create view dbo.fund_first_3_sprints as
+    select sum(fud.value) sum
+from dbo.fund_donations fud
+where fus_id in (1, 2, 5);
+
+create view dbo.fund_on_sex_2020 as
+    select sum(fuwg.value) as sum
+from dbo.fund_with_girls fuwg
+where cash_source = 1
+and date between '2020-01-01' and '2021-01-01';
+
+create view dbo.fund_res_2020 as
+    select sum(fur.hours * fur.rate) as sum
+from dbo.fund_researches fur
+where date between '2020-01-01' and '2021-01-01';
+
+create view dbo.fund_2020 as
+    select (ff3s.sum - fos2020.sum - fr2020.sum) as fund
+from dbo.fund_first_3_sprints as ff3s,
+     dbo.fund_on_sex_2020 as fos2020,
+     dbo.fund_res_2020 as fr2020;
+
+create view dbo.fund_on_sex_2021 as
+    select sum(fuwg.value) as sum
+from dbo.fund_with_girls fuwg
+where cash_source = 1
+and date between '2021-01-01' and '2022-01-01';
+
+create view dbo.fund_total_on_spend as
+    select sum(fuwg.value) as sum
+from dbo.fund_with_girls fuwg
+where cash_source = 2;
+
+create view dbo.fund_total_spends as
+    select sum(fuse.value) as sum
+from dbo.fund_spends fuse;
+
+create view dbo.fund_total_researches as
+    select sum(fur.hours * fur.rate) as sum
+from dbo.fund_researches fur;
+
+create view dbo.fund_total_balance as
+    select (futr.sum - futs.sum - futos.sum) balance
+from dbo.fund_total_researches futr, dbo.fund_total_spends futs, dbo.fund_total_on_spend futos;
+
+create view dbo.fund_total_donations as
+ select sum(fud.value) sum
+from dbo.fund_donations fud;
+
+create view dbo.fund_total_on_sex as
+    select sum(fuwg.value) as sum
+from dbo.fund_with_girls fuwg
+where cash_source = 1;
+
+create view dbo.fund_total as
+    select (ftd.sum - futosx.sum - futr.sum) as sum
+from dbo.fund_total_donations ftd, dbo.fund_total_on_sex futosx, dbo.fund_total_researches futr
