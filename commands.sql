@@ -270,4 +270,90 @@ where cash_source = 1;
 
 create view dbo.fund_total as
     select (ftd.sum - futosx.sum - futr.sum) as sum
-from dbo.fund_total_donations ftd, dbo.fund_total_on_sex futosx, dbo.fund_total_researches futr
+from dbo.fund_total_donations ftd, dbo.fund_total_on_sex futosx, dbo.fund_total_researches futr;
+
+create view dbo.e_2021(name, month, inuah) as
+SELECT ct.name,
+       eh.month,
+       eh.value * eh.rate AS inuah
+FROM dbo.ewer_history eh
+         JOIN dbo.ewer_currency_types ct ON eh.ect_id = ct.ect_id
+WHERE eh.year = 2021;
+
+create view dbo.e_2021_usd(total_usd) as
+SELECT sum(eh.value) AS total_usd
+FROM dbo.ewer_history eh
+WHERE eh.year = 2021
+  AND eh.ect_id = 1;
+
+create view dbo.e_2021_eur(total_eur) as
+SELECT sum(eh.value) AS total_eur
+FROM dbo.ewer_history eh
+WHERE eh.year = 2021
+  AND eh.ect_id = 2;
+
+create view dbo.e_2021_pln(total_pln) as
+SELECT sum(eh.value) AS total_pln
+FROM dbo.ewer_history eh
+WHERE eh.year = 2021
+  AND eh.ect_id = 3;
+
+create view dbo.e_2021_uah(total_uah) as
+SELECT sum(eh.value) AS total_uah
+FROM dbo.ewer_history eh
+WHERE eh.year = 2021
+  AND eh.ect_id = 4;
+
+create view dbo.current_cash_flux_2021(sum) as
+SELECT sum(f.value) AS sum
+FROM dbo.flux f;
+
+create view dbo.current_cash_reflux_2021(sum) as
+SELECT sum(r.value) AS sum
+FROM dbo.reflux r;
+
+create view dbo.current_cash_donation_2021_with_incorrect(sum) as
+select sum(fud.value) sum
+from dbo.fund_donations fud
+where fud.date between '2021-01-01' and '2022-01-01'
+or fud.fus_id = 7;
+
+create view dbo.current_cash_credit_2021(sum) as
+    select sum(cr.value) sum
+from dbo.credit cr
+where start_date >= '2021-01-01' and end_date is null;
+
+create view dbo.current_cash_case_2021(sum) as
+    select sum(cv.inuah) as sum
+from dbo.cases_view cv
+where cv.date between '2021-01-01' and '2022-01-01';
+
+create view dbo.current_cash_ewer_2021(sum) as
+    select sum(e.inuah) as sum
+from dbo.e_2021 e;
+
+create view dbo.current_cash(total) as
+    select (f.sum - r.sum - e.sum - c.sum - cr.sum - ftwi.sum) as total
+from dbo.current_cash_flux_2021 f,
+     dbo.current_cash_reflux_2021 r,
+     dbo.current_cash_ewer_2021 e,
+     dbo.current_cash_case_2021 c,
+     dbo.current_cash_credit_2021 cr,
+     dbo.current_cash_donation_2021_with_incorrect ftwi;
+
+create view dbo.salary_bz_grouped_by_se as
+    select se.se_id,
+           se.date,
+           sum(sb.usd_value) as sum
+from dbo.salary_bonuses sb
+    inner join dbo.salary_enrollment se on sb.se_id = se.se_id
+group by se.se_id
+order by se.se_id;
+
+create view dbo.salary_bz_grouped_by_sbt as
+    select sbt.name,
+           sum(sb.usd_value) as sum
+from dbo.salary_bonuses sb
+    inner join dbo.salary_bonus_types sbt on sbt.sbt_id = sb.sbt_id
+group by sbt.sbt_id
+order by sum;
