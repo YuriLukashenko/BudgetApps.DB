@@ -357,3 +357,314 @@ from dbo.salary_bonuses sb
     inner join dbo.salary_bonus_types sbt on sbt.sbt_id = sb.sbt_id
 group by sbt.sbt_id
 order by sum;
+
+create view dbo.common_ewer_spend_2020 as
+    select es.date,
+           ect.name,
+           es.value,
+           (es.value * es.rate) inuah,
+           es.comment
+from dbo.ewer_spend es
+    inner join dbo.ewer_currency_types ect on ect.ect_id = es.ect_id
+where es.date between '2020-01-01' and '2021-01-01'
+order by date;
+
+create view dbo.common_ewer_spend_2021 as
+    select es.date,
+           ect.name,
+           es.value,
+           (es.value * es.rate) inuah,
+           es.comment
+from dbo.ewer_spend es
+    inner join dbo.ewer_currency_types ect on ect.ect_id = es.ect_id
+where es.date between '2021-01-01' and '2022-01-01'
+order by date;
+
+create view dbo.common_ewer_spend_usd as
+    select sum(es.value) sum
+from dbo.ewer_spend es
+where ect_id = 1
+group by es.ect_id;
+
+create view dbo.common_ewer_spend_eur as
+    select sum(es.value) sum
+from dbo.ewer_spend es
+where ect_id = 2
+group by es.ect_id;
+
+create view dbo.common_ewer_spend_pln as
+    select sum(es.value) sum
+from dbo.ewer_spend es
+where ect_id = 3
+group by es.ect_id;
+
+create view dbo.common_ewer_spend_uah as
+    select sum(es.value) sum
+from dbo.ewer_spend es
+where ect_id = 4
+group by es.ect_id;
+
+create view dbo.ewer_2019(name, month, inuah) as
+SELECT ct.name,
+       e.month,
+       e.value * e.rate AS inuah
+FROM dbo.ewer e
+         JOIN dbo.ewer_currency_types ct ON e.ect_id = ct.ect_id
+WHERE e.year = 2019;
+
+create view dbo.ewer_2019_sum(sum) as
+SELECT sum(e2019.inuah) AS sum
+FROM dbo.ewer_2019 e2019;
+
+create view dbo.ewer_2019_remain(sum) as
+    select (f.sum - r.total - e.sum) as sum
+from dbo.sum_2019_flux f, dbo.sum_2019_reflux r, dbo.ewer_2019_sum e;
+
+create view dbo.ewer_2019_total_invest_by_month(m, total_invest_by_month, year) as
+SELECT e2019.month      AS m,
+       sum(e2019.inuah) AS total_invest_by_month,
+       2019             AS year
+FROM dbo.ewer_2019 e2019
+GROUP BY m
+ORDER BY m;
+
+create view dbo.ewer_2019_eur(total_eur) as
+SELECT sum(e.value) AS total_eur
+FROM dbo.ewer e
+WHERE e.year = 2019
+  AND e.ect_id = 2;
+
+create view dbo.ewer_2019_pln(total_pln) as
+SELECT sum(e.value) AS total_pln
+FROM dbo.ewer e
+WHERE e.year = 2019
+  AND e.ect_id = 3;
+
+create view dbo.ewer_2019_uah(total_uah) as
+SELECT sum(e.value) AS total_uah
+FROM dbo.ewer e
+WHERE e.year = 2019
+  AND e.ect_id = 4;
+
+create view dbo.ewer_2019_uah_bets(sum) as
+SELECT sum(eb.value) AS sum
+FROM (SELECT e.total_uah AS value
+      FROM dbo.ewer_2019_uah e
+      UNION ALL
+      SELECT b.without_cashback AS value
+      FROM dbo.b_2019_without_cashback b) eb;
+
+create view dbo.ewer_2019_usd(total_usd) as
+SELECT sum(e.value) AS total_usd
+FROM dbo.ewer e
+WHERE e.year = 2019
+  AND e.ect_id = 1;
+
+create view dbo.ewer_2020(name, month, inuah) as
+SELECT ct.name,
+       e.month,
+       e.value * e.rate AS inuah
+FROM dbo.ewer e
+         JOIN dbo.ewer_currency_types ct ON e.ect_id = ct.ect_id
+WHERE e.year = 2020;
+
+create view dbo.ewer_2020_eur(total_eur) as
+SELECT sum(e.value) AS total_eur
+FROM dbo.ewer e
+WHERE e.year = 2020
+  AND e.ect_id = 2;
+
+create view dbo.ewer_2020_pln(total_pln) as
+SELECT sum(e.value) AS total_pln
+FROM dbo.ewer e
+WHERE e.year = 2020
+  AND e.ect_id = 3;
+
+create view dbo.ewer_2020_uah(total_uah) as
+SELECT sum(e.value) AS total_uah
+FROM dbo.ewer e
+WHERE e.year = 2020
+  AND e.ect_id = 4;
+
+create view dbo.ewer_2020_uah_bets(sum) as
+SELECT sum(eb.value) AS sum
+FROM (SELECT e.total_uah AS value
+      FROM dbo.ewer_2020_uah e
+      UNION ALL
+      SELECT b.without_cashback AS value
+      FROM dbo.b_2020_without_cashback b) eb;
+
+create view dbo.ewer_2020_usd(total_usd) as
+SELECT sum(e.value) AS total_usd
+FROM dbo.ewer e
+WHERE e.year = 2020
+  AND e.ect_id = 1;
+
+create view dbo.ewer_2020_sum(sum) as
+SELECT sum(e2020.inuah) AS sum
+FROM dbo.ewer_2020 e2020;
+
+create view dbo.ewer_2020_total_invest_by_month(m, total_invest_by_month, year) as
+SELECT e2020.month      AS m,
+       sum(e2020.inuah) AS total_invest_by_month,
+       2020             AS year
+FROM dbo.ewer_2020 e2020
+GROUP BY m
+ORDER BY m;
+
+create view dbo.ewer_2021(name, month, inuah) as
+SELECT ct.name,
+       e.month,
+       e.value * e.rate AS inuah
+FROM dbo.ewer e
+         JOIN dbo.ewer_currency_types ct ON e.ect_id = ct.ect_id
+WHERE e.year = 2021;
+
+create view dbo.ewer_2021_eur(total_eur) as
+SELECT sum(e.value) AS total_eur
+FROM dbo.ewer e
+WHERE e.year = 2021
+  AND e.ect_id = 2;
+
+create view dbo.ewer_2021_pln(total_pln) as
+SELECT sum(e.value) AS total_pln
+FROM dbo.ewer e
+WHERE e.year = 2021
+  AND e.ect_id = 3;
+
+create view dbo.ewer_2021_uah(total_uah) as
+SELECT sum(e.value) AS total_uah
+FROM dbo.ewer e
+WHERE e.year = 2021
+  AND e.ect_id = 4;
+
+create view dbo.ewer_2021_uah_bets(sum) as
+SELECT (e.total_uah - 1584) AS sum
+from dbo.ewer_2021_uah e;
+
+create view dbo.ewer_2021_usd(total_usd) as
+SELECT sum(e.value) AS total_usd
+FROM dbo.ewer e
+WHERE e.year = 2021
+  AND e.ect_id = 1;
+
+create view dbo.ewer_2021_sum(sum) as
+SELECT sum(e2021.inuah) AS sum
+FROM dbo.ewer_2021 e2021;
+
+create view dbo.ewer_2021_total_invest_by_month(m, total_invest_by_month, year) as
+SELECT e2021.month      AS m,
+       sum(e2021.inuah) AS total_invest_by_month,
+       2021             AS year
+FROM dbo.ewer_2021 e2021
+GROUP BY m
+ORDER BY m;
+
+create view dbo.current_cash_ewer_2021(sum) as
+SELECT sum(e.inuah) AS sum
+FROM dbo.ewer_2021 e;
+
+create view dbo.current_cash(total) as
+SELECT f.sum - r.sum - e.sum - c.sum - cr.sum - ftwi.sum::numeric AS total
+FROM dbo.current_cash_flux_2021 f,
+     dbo.current_cash_reflux_2021 r,
+     dbo.current_cash_ewer_2021 e,
+     dbo.current_cash_case_2021 c,
+     dbo.current_cash_credit_2021 cr,
+     dbo.current_cash_donation_2021_with_incorrect ftwi;
+
+create view dbo.ewer_eur(total_eur) as
+SELECT sum(e.value) AS total_eur
+FROM dbo.ewer e
+WHERE e.ect_id = 2;
+
+create view dbo.ewer_pln(total_pln) as
+SELECT sum(e.value) AS total_pln
+FROM dbo.ewer e
+WHERE e.ect_id = 3;
+
+create view dbo.ewer_uah(total_uah) as
+SELECT sum(e.value) AS total_uah
+FROM dbo.ewer e
+WHERE e.ect_id = 4;
+
+create view dbo.ewer_usd(total_usd) as
+SELECT sum(e.value) AS total_usd
+FROM dbo.ewer e
+WHERE e.ect_id = 1;
+
+create view dbo.common_ewer_credit_eur(total_eur) as
+SELECT sum(ec.value) AS total_eur
+FROM dbo.ewer_credit ec
+WHERE ec.ect_id = 2;
+
+create view dbo.common_ewer_credit_pln(total_pln) as
+SELECT sum(ec.value) AS total_pln
+FROM dbo.ewer_credit ec
+WHERE ec.ect_id = 3;
+
+create view dbo.common_ewer_credit_uah(total_uah) as
+SELECT sum(ec.value) AS total_uah
+FROM dbo.ewer_credit ec
+WHERE ec.ect_id = 4;
+
+create view dbo.common_ewer_credit_usd(total_usd) as
+SELECT sum(ec.value) AS total_usd
+FROM dbo.ewer_credit ec
+WHERE ec.ect_id = 1;
+
+
+create view dbo.common_ewer_eur(total_eur) as
+select (ee.total_eur -  cese.sum - cece.total_eur) as total_eur
+from dbo.ewer_eur ee, dbo.common_ewer_spend_eur cese, dbo.common_ewer_credit_eur cece;
+
+create view dbo.common_ewer_pln(total_pln) as
+select (ep.total_pln -  cesp.sum - cecp.total_pln) as total_pln
+from dbo.ewer_pln ep, dbo.common_ewer_spend_pln cesp, dbo.common_ewer_credit_pln cecp;
+
+create view dbo.common_ewer_uah(total_uah) as
+select (eu.total_uah -  cesu.sum - cecu.total_uah) as total_uah
+from dbo.ewer_uah eu, dbo.common_ewer_spend_uah cesu, dbo.common_ewer_credit_uah cecu;
+
+create view dbo.common_ewer_uah_with_bets(total_uah) as
+select (e2019ub.sum + e2020ub.sum + e2021ub.sum -  cesu.sum - cecu.total_uah) as total_uah
+from dbo.ewer_2019_uah_bets e2019ub,
+     dbo.ewer_2020_uah_bets e2020ub,
+     dbo.ewer_2021_uah_bets e2021ub,
+     dbo.common_ewer_spend_uah cesu,
+     dbo.common_ewer_credit_uah cecu;
+
+create view dbo.common_ewer_usd(total_usd) as
+select (eusd.total_usd -  cesusd.sum - cecusd.total_usd) as total_usd
+from dbo.ewer_usd eusd, dbo.common_ewer_spend_usd cesusd, dbo.common_ewer_credit_usd cecusd;
+
+create view dbo.common_ewer_inuah as
+    select (cee.total_eur * cr.eur) as total_eur,
+           (cep.total_pln * cr.pln) as total_pln,
+           (ceuwb.total_uah) as total_uah,
+           (ceu.total_usd * cr.usd) as total_usd
+from dbo.common_ewer_eur as cee,
+     dbo.common_ewer_pln as cep,
+     dbo.common_ewer_uah_with_bets as ceuwb,
+     dbo.common_ewer_usd as ceu,
+     dbo.current_rate as cr
+order by cr.current_id desc
+limit 1;
+
+create view dbo.common_ewer_inuah_up_to_date as
+select (cei.total_eur + cei.total_pln + cei.total_uah + cei.total_usd) as total_inuah
+from dbo.common_ewer_inuah cei;
+
+create view dbo.open_credits as
+select sum(value) as sum
+from dbo.credit
+where end_date is null;
+
+create view dbo.total_values_uah as
+    select (cc.total + ft.sum + ftb.balance + cr.sum + ceuwb.total_uah + cecu.total_uah) as sum
+from dbo.current_cash as cc,
+     dbo.fund_total as ft,
+     dbo.fund_total_balance as ftb,
+     dbo.open_credits as cr,
+     dbo.common_ewer_uah_with_bets as ceuwb,
+     dbo.common_ewer_credit_uah as cecu
