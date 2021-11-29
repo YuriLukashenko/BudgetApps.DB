@@ -668,3 +668,180 @@ from dbo.current_cash as cc,
      dbo.open_credits as cr,
      dbo.common_ewer_uah_with_bets as ceuwb,
      dbo.common_ewer_credit_uah as cecu
+	 
+create view dbo.bets_2019(b_id, bet, outcome, commission, bet_date, outcome_date, comment) as
+SELECT b.b_id,
+       b.bet,
+       b.outcome,
+       b.commission,
+       b.bet_date,
+       b.outcome_date,
+       b.comment
+FROM dbo.bets b
+WHERE b.bet_date >= '2019-01-01'::date
+  AND b.bet_date <= '2019-12-31'::date;
+
+create view dbo.bets_2019_win_lose(win_lose) as
+SELECT sum(b2019.outcome) - sum(b2019.bet) AS win_lose
+FROM dbo.bets_2019 b2019;
+
+create view dbo.bets_2019_cashback(cashback) as
+SELECT sum(b2019.bet) * 0.03 AS cashback
+FROM dbo.bets_2019 b2019
+WHERE b2019.bet_date > '2019-04-30'::date;
+
+create view dbo.bets_2019_tax(tax) as
+SELECT b_2019_c.cashback * 0.195 AS tax
+FROM dbo.bets_2019_cashback b_2019_c;
+
+create view dbo.bets_2019_commission(total_commission) as
+SELECT sum(b2019.commission) AS total_commission
+FROM dbo.bets_2019 b2019;
+
+create view dbo.bets_2019_clean(clean) as
+SELECT bwl.win_lose + bca.cashback - bt.tax - bcm.total_commission AS clean
+FROM dbo.bets_2019_win_lose bwl,
+     dbo.bets_2019_cashback bca,
+     dbo.bets_2019_tax bt,
+     dbo.bets_2019_commission bcm;
+
+create view dbo.bets_2019_without_cashback(without_cashback) as
+SELECT sum(b2019.outcome) - sum(b2019.bet) - sum(b2019.commission) AS without_cashback
+FROM dbo.bets_2019 b2019;
+
+create view dbo.bets_2019_debt_percent(percent) as
+SELECT bcl.clean / sum(b2019.outcome) * 100::numeric AS percent
+FROM dbo.bets_2019 b2019,
+     dbo.bets_2019_clean bcl
+GROUP BY bcl.clean;
+
+create view dbo.bets_2019_sum_bets(total_bets) as
+SELECT sum(b2019.bet) AS total_bets
+FROM dbo.bets_2019 b2019;
+
+create view dbo.common_ewer_inuah(total_eur, total_pln, total_uah, total_usd) as
+SELECT cee.total_eur * cr.eur AS total_eur,
+       cep.total_pln * cr.pln AS total_pln,
+       ceua.total_uah,
+       ceu.total_usd * cr.usd AS total_usd
+FROM dbo.common_ewer_eur cee,
+     dbo.common_ewer_pln cep,
+     dbo.common_ewer_uah ceua,
+     dbo.common_ewer_usd ceu,
+     dbo.current_rate cr
+ORDER BY cr.current_id DESC
+LIMIT 1;
+
+create view dbo.common_ewer_inuah_up_to_date(total_inuah) as
+SELECT cei.total_eur + cei.total_pln + cei.total_uah + cei.total_usd AS total_inuah
+FROM dbo.common_ewer_inuah cei;
+
+create view dbo.total_values_uah(sum) as
+SELECT cc.total + ft.sum + ftb.balance + cr.sum + ceu.total_uah + cecu.total_uah AS sum
+FROM dbo.current_cash cc,
+     dbo.fund_total ft,
+     dbo.fund_total_balance ftb,
+     dbo.open_credits cr,
+     dbo.common_ewer_uah ceu,
+     dbo.common_ewer_credit_uah cecu;
+
+create view dbo.bets_2020(b_id, bet, outcome, commission, bet_date, outcome_date, comment) as
+SELECT b.b_id,
+       b.bet,
+       b.outcome,
+       b.commission,
+       b.bet_date,
+       b.outcome_date,
+       b.comment
+FROM dbo.bets b
+WHERE b.bet_date >= '2020-01-01'::date
+  AND b.bet_date <= '2020-12-31'::date;
+
+create view dbo.bets_2020_sum_bets(total_bets) as
+SELECT sum(b2020.bet) AS total_bets
+FROM dbo.bets_2020 b2020;
+
+create view dbo.bets_2020_without_cashback(without_cashback) as
+SELECT sum(b2020.outcome) - sum(b2020.bet) - sum(b2020.commission) AS without_cashback
+FROM dbo.bets_2020 b2020;
+
+create view dbo.bets_2020_win_lose(win_lose) as
+SELECT sum(b2020.outcome) - sum(b2020.bet) AS win_lose
+FROM dbo.bets_2020 b2020;
+
+create view dbo.bets_2020_commission(total_commission) as
+SELECT sum(b2020.commission) AS total_commission
+FROM dbo.bets_2020 b2020;
+
+create view dbo.bets_2020_cashback(cashback) as
+SELECT sum(b2020.bet) * 0.03 AS cashback
+FROM dbo.bets_2020 b2020
+WHERE b2020.bet_date > '2020-01-31'::date
+  AND (b2020.b_id < 72 OR b2020.b_id > 97);
+
+create view dbo.bets_2020_tax(tax) as
+SELECT b_2020_c.cashback * 0.195 AS tax
+FROM dbo.bets_2020_cashback b_2020_c;
+
+create view dbo.bets_2020_clean(clean) as
+SELECT bwl.win_lose + bca.cashback - bt.tax - bcm.total_commission AS clean
+FROM dbo.bets_2020_win_lose bwl,
+     dbo.bets_2020_cashback bca,
+     dbo.bets_2020_tax bt,
+     dbo.bets_2020_commission bcm;
+
+create view dbo.bets_2020_debt_percent(percent) as
+SELECT bcl.clean / sum(b2020.outcome) * 100::numeric AS percent
+FROM dbo.bets_2020 b2020,
+     dbo.bets_2020_clean bcl
+GROUP BY bcl.clean;
+
+create view dbo.bets_2021(b_id, bet, outcome, commission, bet_date, outcome_date, comment) as
+SELECT b.b_id,
+       b.bet,
+       b.outcome,
+       b.commission,
+       b.bet_date,
+       b.outcome_date,
+       b.comment
+FROM dbo.bets b
+WHERE b.bet_date >= '2021-01-01'::date
+  AND b.bet_date <= '2021-12-31'::date;
+
+create view dbo.bets_2021_sum_bets(total_bets) as
+SELECT sum(b2021.bet) AS total_bets
+FROM dbo.bets_2021 b2021;
+
+create view dbo.bets_2021_without_cashback(without_cashback) as
+SELECT sum(b2021.outcome) - sum(b2021.bet) - sum(b2021.commission) AS without_cashback
+FROM dbo.bets_2021 b2021;
+
+create view dbo.bets_2021_win_lose(win_lose) as
+SELECT sum(b2021.outcome) - sum(b2021.bet) AS win_lose
+FROM dbo.bets_2021 b2021;
+
+create view dbo.bets_2021_commission(total_commission) as
+SELECT sum(b2021.commission) AS total_commission
+FROM dbo.bets_2021 b2021;
+
+create view dbo.bets_2021_cashback(cashback) as
+SELECT sum(b2021.bet) * 0.03 AS cashback
+FROM dbo.bets_2021 b2021
+WHERE b2021.b_id > 186 AND b2021.b_id < 220;
+
+create view dbo.bets_2021_tax(tax) as
+SELECT b_2021_c.cashback * 0.195 AS tax
+FROM dbo.bets_2021_cashback b_2021_c;
+
+create view dbo.bets_2021_clean(clean) as
+SELECT bwl.win_lose + bca.cashback - bt.tax - bcm.total_commission AS clean
+FROM dbo.bets_2021_win_lose bwl,
+     dbo.bets_2021_cashback bca,
+     dbo.bets_2021_tax bt,
+     dbo.bets_2021_commission bcm;
+
+create view dbo.bets_2021_debt_percent(percent) as
+SELECT bcl.clean / sum(b2021.outcome) * 100::numeric AS percent
+FROM dbo.bets_2021 b2021,
+     dbo.bets_2021_clean bcl
+GROUP BY bcl.clean;
