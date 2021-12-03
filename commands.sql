@@ -845,3 +845,87 @@ SELECT bcl.clean / sum(b2021.outcome) * 100::numeric AS percent
 FROM dbo.bets_2021 b2021,
      dbo.bets_2021_clean bcl
 GROUP BY bcl.clean;
+
+create view dbo.ewer_2019_avg_usd as
+    select (sum(e.inuah) / e2019u.total_usd) as avg
+from dbo.ewer_2019 e, dbo.ewer_2019_usd e2019u
+where e.name = 'USD'
+group by e2019u.total_usd;
+
+create view dbo.ewer_2019_avg_eur as
+    select (sum(e.inuah) / e2019u.total_eur) as avg
+from dbo.ewer_2019 e, dbo.ewer_2019_eur e2019u
+where e.name = 'EUR' and e.month > 10
+group by e2019u.total_eur;
+
+create view dbo.ewer_2019_avg_pln as
+    select (sum(e.inuah) / e2019u.total_pln) as avg
+from dbo.ewer_2019 e, dbo.ewer_2019_pln e2019u
+where e.name = 'PLN' and e.month > 10
+group by e2019u.total_pln;
+
+create view dbo.ewer_2019_avg_diff as
+    select (lcr.usd - u.avg) usd_diff,
+           (lcr.eur - e.avg) eur_diff,
+           (lcr.pln - p.avg) pln_diff
+from dbo.ewer_2019_avg_usd u,
+     dbo.ewer_2019_avg_eur e,
+     dbo.ewer_2019_avg_pln p,
+     dbo.last_current_rate lcr;
+
+create view dbo.ewer_2019_inuah as
+    select  cee.total_eur * lcr.eur AS total_eur,
+            cep.total_pln * lcr.pln AS total_pln,
+            ceua.total_uah,
+            ceu.total_usd * lcr.usd AS total_usd,
+            (cee.total_eur * lcr.eur) + (cep.total_pln * lcr.pln) + (ceua.total_uah) + (ceu.total_usd * lcr.usd) as total
+FROM dbo.ewer_2019_eur cee,
+     dbo.ewer_2019_pln cep,
+     dbo.ewer_2019_uah ceua,
+     dbo.ewer_2019_usd ceu,
+     dbo.last_current_rate lcr;
+
+create view dbo.ewer_2019_cardinality_usd as
+    select (sum(e.inuah) + ce.value) card
+from dbo.ewer_2019 e, dbo.closed_exchanges ce
+where e.name = 'USD' and ce.ect_id = 1
+group by ce.value;
+
+create view dbo.ewer_2019_cardinality_eur as
+    select (sum(e.inuah) + ce.value) card
+from dbo.ewer_2019 e, dbo.closed_exchanges ce
+where e.name = 'EUR' and ce.ect_id = 2
+group by ce.value;
+
+create view dbo.ewer_2019_cardinality_pln as
+    select (sum(e.inuah) + ce.value) card
+from dbo.ewer_2019 e, dbo.closed_exchanges ce
+where e.name = 'PLN' and ce.ect_id = 3
+group by ce.value;
+
+create view dbo.ewer_2019_deviations as
+    select (i.total_usd - u.card) usd_dev,
+           (i.total_eur - e.card) eur_dev,
+           (i.total_pln - p.card) pln_dev
+from dbo.ewer_2019_cardinality_usd u,
+     dbo.ewer_2019_cardinality_eur e,
+     dbo.ewer_2019_cardinality_pln p,
+     dbo.ewer_2019_inuah i;
+
+create view dbo.ewer_2019_percent as
+    select round(CAST(sum(e.inuah) / f.sum * 100 as numeric), 2) as percent_uah
+from dbo.ewer_2019 e,
+     dbo.flux_2019_sum f
+group by f.sum;
+
+create view dbo.flux_2019_month_profit as
+    select date_trunc('month', f.date) g, EXTRACT(MONTH FROM f.date) m, sum(f.value) as m_sum
+from dbo.flux_2019 f
+group by g, m
+order by g;
+
+create view dbo.ewer_2019_month_profit_percent as
+    select round(CAST((tibm.total_invest_by_month / mp.m_sum) * 100 as numeric), 2) as percent
+from dbo.ewer_2019_total_invest_by_month tibm inner join
+     dbo.flux_2019_month_profit mp
+on tibm.m = mp.m;
