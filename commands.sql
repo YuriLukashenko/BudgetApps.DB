@@ -929,3 +929,49 @@ create view dbo.ewer_2019_month_profit_percent as
 from dbo.ewer_2019_total_invest_by_month tibm inner join
      dbo.flux_2019_month_profit mp
 on tibm.m = mp.m;
+
+-----------------current_cash_by_2021-------------------------------
+create view current_cash_bets_2021(sum) as
+SELECT sum(b2021.outcome) - sum(b2021.bet) - sum(b2021.commission) AS sum
+FROM dbo.bets_2021 b2021;
+
+create view current_cash_case_2021(sum) as
+SELECT sum(cv.inuah) AS sum
+FROM dbo.cases_view cv
+WHERE cv.date >= '2021-01-01'::date
+  AND cv.date <= '2022-01-01'::date;
+  
+create view current_cash_credit_2021(sum) as
+SELECT sum(cr.value) AS sum
+FROM dbo.credit cr
+WHERE cr.start_date >= '2021-01-01'::date
+  AND cr.end_date IS NULL;
+  
+create view current_cash_donation_2021_with_incorrect(sum) as
+SELECT sum(fud.value) AS sum
+FROM dbo.fund_donations fud
+WHERE fud.date >= '2021-01-01'::date AND fud.date <= '2022-01-01'::date
+   OR fud.fus_id = 7;
+   
+create view current_cash_ewer_2021(sum) as
+SELECT sum(e.inuah) AS sum
+FROM dbo.ewer_2021 e;
+
+create view current_cash_flux_2021(sum) as
+SELECT sum(flux.value) AS sum
+FROM dbo.flux flux;
+
+create view current_cash_reflux_2021(sum) as
+SELECT sum(r.value) AS sum
+FROM dbo.reflux r;
+
+create view current_cash(total) as
+SELECT f.sum - r.sum - e.sum - c.sum - cr.sum - ftwi.sum::numeric + b.sum AS total
+FROM dbo.current_cash_flux_2021 f,
+     dbo.current_cash_reflux_2021 r,
+     dbo.current_cash_ewer_2021 e,
+     dbo.current_cash_case_2021 c,
+     dbo.current_cash_credit_2021 cr,
+     dbo.current_cash_donation_2021_with_incorrect ftwi,
+     dbo.current_cash_bets_2021 b;
+-----------------end-current_cash_by_2021-------------------------------
