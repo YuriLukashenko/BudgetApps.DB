@@ -12,7 +12,7 @@ FROM dbo.current_cash_2022_flux f,
      dbo.current_cash_2022_obligation o;
 
 create view dbo.total_values_uah(sum) as
-SELECT cc.total + ft.sum + ftb.balance + cr.sum + ceu.total_uah + cecu.total_uah + сс2d.sum + o.value AS sum
+SELECT cc.total + ft.sum + ftb.balance + cr.sum + ceu.total_uah + cecu.total_uah + сс2d.sum + o.sum AS sum
 FROM dbo.current_cash cc,
      dbo.fund_total ft,
      dbo.fund_total_balance ftb,
@@ -20,7 +20,7 @@ FROM dbo.current_cash cc,
      dbo.common_ewer_uah ceu,
      dbo.common_ewer_credit_uah cecu,
      dbo.current_cash_2022_deposit сс2d,
-     dbo.obligation o;
+     dbo.current_cash_2022_obligation o;
 
 create view dbo.total_values(uah, usd_uah, eur_uah, pln_uah, fop_uah) as
 SELECT tvuah.sum           AS uah,
