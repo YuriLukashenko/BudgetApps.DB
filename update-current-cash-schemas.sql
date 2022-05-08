@@ -1,5 +1,5 @@
 create view dbo.current_cash(total) as
-SELECT f.sum - r.sum - e.sum - c.sum - cr.sum - d.sum::numeric + b.sum - a.sum - de.sum AS total
+SELECT f.sum - r.sum - e.sum - c.sum - cr.sum - d.sum::numeric + b.sum - a.sum - de.sum - o.sum AS total
 FROM dbo.current_cash_2022_flux f,
      dbo.current_cash_2022_reflux r,
      dbo.current_cash_2022_ewer e,
@@ -8,16 +8,19 @@ FROM dbo.current_cash_2022_flux f,
      dbo.current_cash_2022_donation d,
      dbo.current_cash_2022_bets b,
      dbo.current_cash_2022_army a,
-     dbo.current_cash_2022_deposit de;
+     dbo.current_cash_2022_deposit de,
+     dbo.current_cash_2022_obligation o;
 
 create view dbo.total_values_uah(sum) as
-SELECT cc.total + ft.sum + ftb.balance + cr.sum + ceu.total_uah + cecu.total_uah AS sum
+SELECT cc.total + ft.sum + ftb.balance + cr.sum + ceu.total_uah + cecu.total_uah + сс2d.sum + o.value AS sum
 FROM dbo.current_cash cc,
      dbo.fund_total ft,
      dbo.fund_total_balance ftb,
      dbo.open_credits cr,
      dbo.common_ewer_uah ceu,
-     dbo.common_ewer_credit_uah cecu;
+     dbo.common_ewer_credit_uah cecu,
+     dbo.current_cash_2022_deposit сс2d,
+     dbo.obligation o;
 
 create view dbo.total_values(uah, usd_uah, eur_uah, pln_uah, fop_uah) as
 SELECT tvuah.sum           AS uah,
